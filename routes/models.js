@@ -4,7 +4,7 @@ const { listObjects, uploadObject, translateObject, getManifest, urnify } = requ
 
 let router = express.Router();
 
-router.get('/api/models', async function (req, res, next) {
+router.get('/models', async function (req, res, next) {
     try {
         const objects = await listObjects();
         res.json(objects.map(o => ({
@@ -16,7 +16,25 @@ router.get('/api/models', async function (req, res, next) {
     }
 });
 
-router.get('/api/models/:urn/status', async function (req, res, next) {
+const express = require('express');
+const formidable = require('express-formidable');
+const { listObjects, uploadObject, translateObject, getManifest, urnify } = require('../services/aps.js');
+
+let router = express.Router();
+
+router.get('/models', async function (req, res, next) {
+    try {
+        const objects = await listObjects();
+        res.json(objects.map(o => ({
+            name: o.objectKey,
+            urn: urnify(o.objectId)
+        })));
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/models/:urn/status', async function (req, res, next) {
     try {
         const manifest = await getManifest(req.params.urn);
         if (manifest) {
@@ -39,6 +57,27 @@ router.get('/api/models/:urn/status', async function (req, res, next) {
         next(err);
     }
 });
+
+router.post('/models', formidable({ maxFileSize: Infinity }), async function (req, res, next) {
+    const file = req.files['model-file'];
+    if (!file) {
+        res.status(400).send('The required field ("model-file") is missing.');
+        return;
+    }
+    try {
+        const obj = await uploadObject(file.name, file.path);
+        await translateObject(urnify(obj.objectId), req.fields['model-zip-entrypoint']);
+        res.json({
+            name: obj.objectKey,
+            urn: urnify(obj.objectId)
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+module.exports = router;
+
 
 router.post('/api/models', formidable({ maxFileSize: Infinity }), async function (req, res, next) {
     const file = req.files['model-file'];
