@@ -4,7 +4,7 @@ const { listObjects, uploadObject, translateObject, getManifest, urnify } = requ
 
 let router = express.Router();
 
-router.get('/models', async function (req, res, next) {
+router.get('/api/aps/models', async function (req, res, next) {
     try {
         const objects = await listObjects();
         res.json(objects.map(o => ({
@@ -16,7 +16,7 @@ router.get('/models', async function (req, res, next) {
     }
 });
 
-router.get('/models/:urn/status', async function (req, res, next) {
+router.get('/api/aps/models/:urn/status', async function (req, res, next) {
     try {
         const manifest = await getManifest(req.params.urn);
         if (manifest) {
@@ -40,7 +40,7 @@ router.get('/models/:urn/status', async function (req, res, next) {
     }
 });
 
-router.post('/models', formidable({ maxFileSize: Infinity }), async function (req, res, next) {
+router.post('/api/aps/models', formidable({ maxFileSize: Infinity }), async function (req, res, next) {
     const file = req.files['model-file'];
     if (!file) {
         res.status(400).send('The required field ("model-file") is missing.');
