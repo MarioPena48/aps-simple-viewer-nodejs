@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # The server runs on port 8080, make it available to the network
-EXPOSE 8080
+EXPOSE 8081
 
 # Define the command to run the app
 CMD [ "node", "server.js" ]
