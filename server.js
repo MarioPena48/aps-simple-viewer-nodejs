@@ -6,6 +6,6 @@ const cors = require('cors');
 let app = express();
 app.use(cors());
 app.use(express.static('wwwroot'));
-app.use(require('./routes/auth.js'));
-app.use(require('./routes/models.js'));
+app.use('/api/aps', require('./routes/auth.js'));
+app.use('/api/aps', require('./routes/models.js'));
 app.listen(PORT, function () { console.log(`Server listening on port ${PORT}...`); });
