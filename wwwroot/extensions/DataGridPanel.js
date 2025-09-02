@@ -28,7 +28,6 @@ export class DataGridPanel extends Autodesk.Viewing.UI.DockingPanel {
         this.container.style.top = (options.y || 0) + 'px';
         this.container.style.width = (options.width || 500) + 'px';
         this.container.style.height = (options.height || 400) + 'px';
-        this.container.style.resize = 'none';
     }
 
     initialize() {
