@@ -1,9 +1,24 @@
 import { initViewer, loadModel } from './viewer.js';
 
+const App = {
+    viewer: null,
+    urn: null,
+    extensions: {}
+};
+
 initViewer(document.getElementById('preview')).then(viewer => {
+    App.viewer = viewer;
     const urn = window.location.hash?.substring(1);
     setupModelSelection(viewer, urn);
     setupModelUpload(viewer);
+    setupDashboard(viewer);
+    viewer.addEventListener(Autodesk.Viewing.MODEL_ROOT_LOADED_EVENT, (ev) => {
+        for (const ext of Object.values(App.extensions)) {
+            if (ext.onModelLoaded) {
+                ext.onModelLoaded(ev.model);
+            }
+        }
+    });
 });
 
 async function setupModelSelection(viewer, selectedUrn) {
@@ -67,6 +82,7 @@ async function onModelSelected(viewer, urn) {
         delete window.onModelSelectedTimeout;
     }
     window.location.hash = urn;
+    App.urn = urn;
     try {
         const resp = await fetch(`/api/aps/models/${urn}/status`);
         if (!resp.ok) {
@@ -87,7 +103,7 @@ async function onModelSelected(viewer, urn) {
             default:
                 clearNotification();
                 loadModel(viewer, urn);
-                break; 
+                break;
         }
     } catch (err) {
         alert('Could not load model. See the console for more details.');
@@ -105,4 +121,36 @@ function clearNotification() {
     const overlay = document.getElementById('overlay');
     overlay.innerHTML = '';
     overlay.style.display = 'none';
+}
+
+function setupDashboard(viewer) {
+    const div = document.createElement('div');
+    div.id = 'dashboard';
+    viewer.container.appendChild(div);
+    App.extensions.LoggerExtension = viewer.getExtension('LoggerExtension');
+    App.extensions.SummaryExtension = viewer.getExtension('SummaryExtension');
+    App.extensions.HistogramExtension = viewer.getExtension('HistogramExtension');
+    App.extensions.DataGridExtension = viewer.getExtension('DataGridExtension');
+    for (const ext of Object.values(App.extensions)) {
+        if (ext) {
+            ext.panel = new DashboardPanel(div, ext.constructor.name + 'Panel', ext.constructor.name);
+        }
+    }
+}
+
+class DashboardPanel {
+    constructor(parent, id, title) {
+        this.container = document.createElement('div');
+        this.container.id = id;
+        this.container.classList.add('dashboard-panel');
+        parent.appendChild(this.container);
+        this.title = document.createElement('div');
+        this.title.classList.add('title');
+        this.title.textContent = title;
+        this.container.appendChild(this.title);
+        this.content = document.createElement('div');
+        this.content.classList.add('content');
+        this.container.appendChild(this.content);
+        this.title.onclick = () => this.content.style.display = this.content.style.display === 'none' ? 'block' : 'none';
+    }
 }

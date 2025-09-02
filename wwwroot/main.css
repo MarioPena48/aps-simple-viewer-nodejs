@@ -53,3 +53,50 @@ body, html {
     flex: 0 1 auto;
     min-width: 2em;
 }
+
+.dashboard {
+    position: absolute;
+    left: 1em;
+    top: 4em;
+    width: 300px;
+    z-index: 1;
+}
+
+.dashboard-panel {
+    margin-bottom: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f8f8f8;
+}
+
+.dashboard-panel .title {
+    padding: .5em;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.dashboard-panel .content {
+    padding: .5em;
+}
+
+.dashboard-panel .graph .bar {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    margin-bottom: .25em;
+}
+
+.dashboard-panel .graph .bar .label {
+    flex: 0 0 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dashboard-panel .graph .bar .value {
+    flex: 1 0 auto;
+    height: 1em;
+    background: #33a;
+}
