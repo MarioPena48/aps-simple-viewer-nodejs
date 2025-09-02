@@ -15,7 +15,9 @@ async function getInternalToken() {
         Scopes.DataCreate,
         Scopes.DataWrite,
         Scopes.BucketCreate,
-        Scopes.BucketRead
+        Scopes.BucketRead,
+        Scopes.DataDelete,      // Added for manifest deletion
+        Scopes.BucketDelete     // Added for object deletion
     ]);
     return credentials.access_token;
 }
@@ -89,4 +91,36 @@ service.getManifest = async (urn) => {
     }
 };
 
+service.getManifest = async (urn) => {
+    const accessToken = await getInternalToken();
+    try {
+        const manifest = await modelDerivativeClient.getManifest(urn, { accessToken });
+        return manifest;
+    } catch (err) {
+        if (err.axiosError.response.status === 404) {
+            return null;
+        } else {
+            throw err;
+        }
+    }
+};
+
+service.deleteModel = async (urn) => {
+    const accessToken = await getInternalToken();
+    const objectId = service.unurnify(urn);
+    const parts = objectId.split('/');
+    const objectKey = parts[parts.length - 1];
+    // It's safer to delete the manifest first. If this fails, we don't
+    // want to delete the source file.
+    try {
+        await modelDerivativeClient.deleteManifest(urn, { accessToken });
+    } catch (err) {
+        // Manifest deletion may fail if the translation is not complete, but we can still delete the source file.
+        console.warn('Could not delete manifest for urn', urn, err);
+    }
+    await ossClient.deleteObject(APS_BUCKET, objectKey, { accessToken });
+};
+
 service.urnify = (id) => Buffer.from(id).toString('base64').replace(/=/g, '');
+
+service.unurnify = (urn) => Buffer.from(urn, 'base64').toString('ascii');

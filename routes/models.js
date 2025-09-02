@@ -1,6 +1,6 @@
 const express = require('express');
 const formidable = require('express-formidable');
-const { listObjects, uploadObject, translateObject, getManifest, urnify } = require('../services/aps.js');
+const { listObjects, uploadObject, translateObject, getManifest, deleteModel, urnify } = require('../services/aps.js'); // Added deleteModel
 
 let router = express.Router();
 
@@ -53,6 +53,15 @@ router.post('/api/aps/models', formidable({ maxFileSize: Infinity }), async func
             name: obj.objectKey,
             urn: urnify(obj.objectId)
         });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.delete('/api/aps/models/:urn', async function (req, res, next) {
+    try {
+        await deleteModel(req.params.urn);
+        res.status(204).end();
     } catch (err) {
         next(err);
     }
