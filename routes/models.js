@@ -3,6 +3,7 @@ const formidable = require('express-formidable');
 const { listObjects, uploadObject, translateObject, getManifest, deleteModel, urnify } = require('../services/aps.js'); // Added deleteModel
 
 let router = express.Router();
+router.use(express.json()); // To parse JSON bodies
 
 router.get('/api/aps/models', async function (req, res, next) {
     try {
@@ -47,7 +48,8 @@ router.post('/api/aps/models', formidable({ maxFileSize: Infinity }), async func
         return;
     }
     try {
-        const obj = await uploadObject(file.name, file.path);
+        const modelName = req.fields['model-name'] || file.name;
+        const obj = await uploadObject(modelName, file.path);
         await translateObject(urnify(obj.objectId), req.fields['model-zip-entrypoint']);
         res.json({
             name: obj.objectKey,
@@ -58,9 +60,13 @@ router.post('/api/aps/models', formidable({ maxFileSize: Infinity }), async func
     }
 });
 
-router.delete('/api/aps/models/:urn', async function (req, res, next) {
+router.delete('/api/aps/models', async function (req, res, next) {
     try {
-        await deleteModel(req.params.urn);
+        const { objectKey, urn } = req.body;
+        if (!objectKey || !urn) {
+            return res.status(400).send('The required fields ("objectKey", "urn") are missing.');
+        }
+        await deleteModel(urn, objectKey);
         res.status(204).end();
     } catch (err) {
         next(err);

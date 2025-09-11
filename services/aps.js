@@ -91,25 +91,9 @@ service.getManifest = async (urn) => {
     }
 };
 
-service.getManifest = async (urn) => {
+service.deleteModel = async (urn, objectKey) => {
+    console.log(`Deleting model with URN: ${urn} and Object Key: ${objectKey}`);
     const accessToken = await getInternalToken();
-    try {
-        const manifest = await modelDerivativeClient.getManifest(urn, { accessToken });
-        return manifest;
-    } catch (err) {
-        if (err.axiosError.response.status === 404) {
-            return null;
-        } else {
-            throw err;
-        }
-    }
-};
-
-service.deleteModel = async (urn) => {
-    const accessToken = await getInternalToken();
-    const objectId = service.unurnify(urn);
-    const parts = objectId.split('/');
-    const objectKey = parts[parts.length - 1];
     // It's safer to delete the manifest first. If this fails, we don't
     // want to delete the source file.
     try {
