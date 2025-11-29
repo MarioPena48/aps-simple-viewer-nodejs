@@ -105,6 +105,13 @@ service.deleteModel = async (urn, objectKey) => {
     await ossClient.deleteObject(APS_BUCKET, objectKey, { accessToken });
 };
 
+service.getObjectSize = async (objectKey) => {
+    await service.ensureBucketExists(APS_BUCKET);
+    const accessToken = await getInternalToken();
+    const details = await ossClient.getObjectDetails(APS_BUCKET, objectKey, { accessToken });
+    return details.size;
+};
+
 service.urnify = (id) => Buffer.from(id).toString('base64').replace(/=/g, '');
 
 service.unurnify = (urn) => Buffer.from(urn, 'base64').toString('ascii');

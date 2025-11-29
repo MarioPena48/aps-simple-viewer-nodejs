@@ -73,4 +73,13 @@ router.delete('/api/aps/models', async function (req, res, next) {
     }
 });
 
+router.get('/api/aps/models/:objectKey/size', async function (req, res, next) {
+    try {
+        const size = await getObjectSize(req.params.objectKey);
+        res.json({ size });
+    } catch (err) {
+        next(err);
+    }
+});
+
 module.exports = router;
