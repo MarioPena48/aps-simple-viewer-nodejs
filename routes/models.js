@@ -1,6 +1,6 @@
 const express = require('express');
 const formidable = require('express-formidable');
-const { listObjects, uploadObject, translateObject, getManifest, deleteModel, urnify } = require('../services/aps.js'); // Added deleteModel
+const { listObjects, uploadObject, translateObject, getManifest, deleteModel, urnify, getBucketUsage, getObjectSize } = require('../services/aps.js'); // Added deleteModel
 
 let router = express.Router();
 router.use(express.json()); // To parse JSON bodies
@@ -77,6 +77,15 @@ router.get('/api/aps/models/:objectKey/size', async function (req, res, next) {
     try {
         const size = await getObjectSize(req.params.objectKey);
         res.json({ size });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/api/aps/bucket/usage', async function (req, res, next) {
+    try {
+        const usage = await getBucketUsage();
+        res.json(usage);
     } catch (err) {
         next(err);
     }

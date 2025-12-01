@@ -112,6 +112,17 @@ service.getObjectSize = async (objectKey) => {
     return details.size;
 };
 
+service.getBucketUsage = async () => {
+    // Sum sizes of every object in the bucket to report total usage.
+    const objects = await service.listObjects();
+    const totalBytes = objects.reduce((sum, obj) => sum + (obj.size || 0), 0);
+    return {
+        bucketKey: APS_BUCKET,
+        objectCount: objects.length,
+        totalBytes
+    };
+};
+
 service.urnify = (id) => Buffer.from(id).toString('base64').replace(/=/g, '');
 
 service.unurnify = (urn) => Buffer.from(urn, 'base64').toString('ascii');
